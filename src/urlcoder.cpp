@@ -2,53 +2,58 @@
 #include "urlencoder.h"
 #include <Windows.h>
 #include <iostream>
-#include <fstream>
-#include <filesystem>
+#include <codecvt>
+#include <vector>
 
-static std::string readArgs (const std::string & path) {
-	std::string arg;
-	
-	std::filesystem::path filepath = std::filesystem::path (path);
-	std::ifstream finput (filepath, std::ios::in);
-	
-	if (finput.is_open () && finput.good ()) {
-		std::getline (finput, arg);
-
-		if (finput.fail ()) {
-			std::cout << u8"Error reading input file" << std::endl;
-		}
-	}
-	else {
-		std::cout << u8"Error opening file " << filepath.c_str() << std::endl;
-	}
-	
-	finput.close ();
-
-	if (arg.front() == '"' && arg.back () == '"') {
-		return arg.substr (1, arg.length () - 2);
-	}
-
-	return arg;
+static std::string wstringToString (const std::wstring& wstr) {
+	if (wstr.empty ()) return std::string ();
+	int sizeNeeded = WideCharToMultiByte (CP_UTF8, 0, &wstr[0], (int)wstr.size (), NULL, 0, NULL, NULL);
+	std::string strTo (sizeNeeded, 0);
+	WideCharToMultiByte (CP_UTF8, 0, &wstr[0], (int)wstr.size (), &strTo[0], sizeNeeded, NULL, NULL);
+	return strTo;
 }
 
 int main (int argc, char** argv) {
+	int argCount = 0;
+	std::vector<std::string> args;
+
 #if WIN32
 	SetConsoleOutputCP (CP_UTF8);
+
+	{
+		LPWSTR* argList = CommandLineToArgvW (GetCommandLineW (), &argCount);
+
+		if (argList == NULL) {
+			std::cout << u8"CommandLineToArgvW failed" << std::endl;
+			return EXIT_FAILURE;
+		}
+
+		for (size_t i = 0; i < argCount; ++i) {
+			args.emplace_back (wstringToString (argList[i]));
+		}
+
+		LocalFree (argList);
+	}
+#else
+
+	argCount = argc;
+	for (size_t i = 0; i < argCount; ++i) {
+		args.emplace_back (argv[i]);
+	}
+
 #endif
 
-	if (argc > 2) {
-		std::string arg = readArgs (argv[2]);
-
-		if (std::strcmp (argv[1], "encode") == 0) {
-			std::cout << URLEncoder::encode (arg) << std::endl;
+	if (argCount > 2) {
+		if (args[1] == "encode") {
+			std::cout << URLEncoder::encode (args[2]) << std::endl;
 		}
-		else if (std::strcmp (argv[1], "decode") == 0) {
-			std::cout << URLDecoder::decode (arg) << std::endl;
+		else if (args[1] == "decode") {
+			std::cout << URLDecoder::decode (args[2]) << std::endl;
 		}
 		else {
 			std::cout << u8"Unknown command" << std::endl;
 		}
 	}
-	
+
 	return EXIT_SUCCESS;
 }
