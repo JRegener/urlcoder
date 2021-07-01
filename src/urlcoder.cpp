@@ -1,9 +1,10 @@
 #include "urldecoder.h"
 #include "urlencoder.h"
-#include <Windows.h>
 #include <iostream>
-#include <codecvt>
 #include <vector>
+
+#if WIN32
+#include <Windows.h>
 
 static std::string wstringToString (const std::wstring& wstr) {
 	if (wstr.empty ()) return std::string ();
@@ -12,6 +13,7 @@ static std::string wstringToString (const std::wstring& wstr) {
 	WideCharToMultiByte (CP_UTF8, 0, &wstr[0], (int)wstr.size (), &strTo[0], sizeNeeded, NULL, NULL);
 	return strTo;
 }
+#endif
 
 int main (int argc, char** argv) {
 	int argCount = 0;
