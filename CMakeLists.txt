@@ -9,7 +9,7 @@ set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (MSVC)
 
-	option(ENABLE_STATIC_LINK "Собирать проект с флагом /MT" ON)
+	option(ENABLE_STATIC_LINK "Build project with flag /MT" ON)
 	mark_as_advanced(ENABLE_STATIC_LINK)
 	if (ENABLE_STATIC_LINK STREQUAL ON)
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
@@ -20,7 +20,7 @@ if (MSVC)
 
 else ()
 
-	option(ENABLE_STATIC_LINK "Линковать библиотеки статически" ON)
+	option(ENABLE_STATIC_LINK "Link libraries static" ON)
 	mark_as_advanced(ENABLE_STATIC_LINK)
 
 endif ()
